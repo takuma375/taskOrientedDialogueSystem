@@ -8,6 +8,39 @@ el = QtCore.QEventLoop()
 # SCXMLファイルの読み込み
 sm = QtScxml.QScxmlStateMachine.fromFile('states.scxml')
 
+# 都道府県名のリスト
+prefs = [   '三重', '京都', '佐賀', '兵庫', '北海道', '千葉', '和歌山',
+            '埼玉', '大分', '大阪', '奈良', '宮城', '宮崎', '富山', '山口',
+            '山形', '山梨', '岐阜', '岡山', '岩手', '島根', '広島', '徳島',
+            '愛媛', '愛知', '新潟', '東京', '栃木', '沖縄', '滋賀', '熊本',
+            '石川', '神奈川', '福井', '福岡', '福島', '秋田', '群馬', '茨城',
+            '長崎', '長野', '青森', '静岡', '香川', '高知', '鳥取', '鹿児島']
+
+# テキストから都道府県名を抽出する関数
+def get_place(text):
+    for pref in prefs:
+        if pref in text:
+            return pref
+    return ""
+
+# テキストに「今日」もしくは「明日」があれば、それを返す関数。見つからない場合は空文字を返す
+def get_date(text):
+    if "今日" in text:
+        return "今日"
+    elif "明日" in text:
+        return "明日"
+    else:
+        return ""
+
+# テキストに「天気」もしくは「気温」があればそれを返す関数。見つからない場合は空文字を返す
+def get_type(text):
+    if "天気" in text:
+        return "天気"
+    elif "気温" in text:
+        return "気温"
+    else:
+        return ""
+
 # 初期状態に遷移
 sm.start()
 el.processEvents()
@@ -32,8 +65,21 @@ print("SYS>", sysutt)
 while True:
     text = input("> ")
     # ユーザー入力を用いて状態遷移
-    sm.submitEvent(text)
-    el.processEvents()
+    if current_state == "ask_place":
+        place = get_place(text)
+        if place != "":
+            sm.submitEvent("place")
+            el.processEvents()
+    elif current_state == "ask_date":
+        date = get_date(text)
+        if date != "":
+            sm.submitEvent("date")
+            el.processEvents()
+    elif current_state == "ask_type":
+        _type = get_type(text)
+        if _type != "":
+            sm.submitEvent("type")
+            el.processEvents()
 
     # 遷移先の状態を取得
     current_state = sm.activeStateNames()[0]
