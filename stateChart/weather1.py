@@ -1,5 +1,7 @@
 import sys
 from PySide2 import QtCore, QtScxml
+import requests, json
+from datetime import datetime, timedelta, time
 
 # Qtに関する初期設定
 app = QtCore.QCoreApplication()
@@ -15,6 +17,11 @@ prefs = [   '三重', '京都', '佐賀', '兵庫', '北海道', '千葉', '和�
             '愛媛', '愛知', '新潟', '東京', '栃木', '沖縄', '滋賀', '熊本',
             '石川', '神奈川', '福井', '福岡', '福島', '秋田', '群馬', '茨城',
             '長崎', '長野', '青森', '静岡', '香川', '高知', '鳥取', '鹿児島']
+
+# Open Weather Mapのクエリ文, APIキーの定義
+current_weather_url = 'http://api.openweathermap.org/data/2.5/weather'
+forecast_url = 'http://api.openweathermap.org/data/2.5/forecast'
+
 
 # テキストから都道府県名を抽出する関数
 def get_place(text):
@@ -40,6 +47,35 @@ def get_type(text):
         return "気温"
     else:
         return ""
+
+# 天気情報を取得する関数
+def get_current_weather(lat, lon):
+    # 天気情報を取得
+    response = requests.get("{}?lat={}&lon={}&lang=ja&units=metric&APPID={}".format(current_weather_url, lat, lon, addid))
+    return response.json()
+
+def get_tomorrow_weather(lat, lon):
+    #今日の時間を取得
+    today = datetime.today()
+    # 明日の時間を取得
+    tomorrow = today + timedelta(days=1)
+    # 明日の正午の時間を取得
+    tomorrow_noon = datetime.combine(tomorrow, time(12, 0))
+    # UNIX時間に変換
+    timestamp = tomorrow_noon.timestamp()
+
+    #天気情報を取得
+    response = requests.get("{}?lat={}&lon={}&lang=ja&units=metric&APPID={}".format(forecast_url, lat, lon, appid))
+    dic = response.json()
+
+    # 3時間おきの天気情報についてループ
+    for i in range(len(dic["list"])):
+        # i番目の天気情報(UNIX時間)
+        dt = float(dic["list"][i]["dt"])
+        # 明日の正午移行のデータになった時点でその天気情報を返す
+        if dt >= timestamp:
+            return dic["list"][i]
+    return ""
 
 # 初期状態に遷移
 sm.start()
