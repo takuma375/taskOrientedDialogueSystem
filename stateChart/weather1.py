@@ -1,14 +1,7 @@
-import sys
+import sys, os
 from PySide2 import QtCore, QtScxml
 import requests, json
 from datetime import datetime, timedelta, time
-
-# Qtに関する初期設定
-app = QtCore.QCoreApplication()
-el = QtCore.QEventLoop()
-
-# SCXMLファイルの読み込み
-sm = QtScxml.QScxmlStateMachine.fromFile('states.scxml')
 
 # 都道府県名のリスト
 prefs = [   '三重', '京都', '佐賀', '兵庫', '北海道', '千葉', '和歌山',
@@ -21,7 +14,7 @@ prefs = [   '三重', '京都', '佐賀', '兵庫', '北海道', '千葉', '和�
 # Open Weather Mapのクエリ文, APIキーの定義
 current_weather_url = 'http://api.openweathermap.org/data/2.5/weather'
 forecast_url = 'http://api.openweathermap.org/data/2.5/forecast'
-
+appid = os.environ["WEATHER_MAP_API_KEY"]
 
 # テキストから都道府県名を抽出する関数
 def get_place(text):
@@ -76,6 +69,13 @@ def get_tomorrow_weather(lat, lon):
         if dt >= timestamp:
             return dic["list"][i]
     return ""
+
+# Qtに関する初期設定
+app = QtCore.QCoreApplication()
+el = QtCore.QEventLoop()
+
+# SCXMLファイルの読み込み
+sm = QtScxml.QScxmlStateMachine.fromFile('states.scxml')
 
 # 初期状態に遷移
 sm.start()
