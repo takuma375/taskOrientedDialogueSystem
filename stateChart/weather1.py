@@ -63,7 +63,7 @@ def get_type(text):
 # 天気情報を取得する関数
 def get_current_weather(lat, lon):
     # 天気情報を取得
-    response = requests.get("{}?lat={}&lon={}&lang=ja&units=metric&APPID={}".format(current_weather_url, lat, lon, addid))
+    response = requests.get("{}?lat={}&lon={}&lang=ja&units=metric&APPID={}".format(current_weather_url, lat, lon, appid))
     return response.json()
 
 def get_tomorrow_weather(lat, lon):
@@ -119,6 +119,7 @@ print("SYS>", sysutt)
 # ユーザー入力の処理
 while True:
     text = input("> ")
+
     # ユーザー入力を用いて状態遷移
     if current_state == "ask_place":
         place = get_place(text)
@@ -142,7 +143,22 @@ while True:
 
     # 遷移先がtell_infoの場合は情報を伝えて終了
     if current_state == "tell_info":
-        print("天気をお伝えします")
+        print("伝えします")
+        lat = latlondic[place][0]
+        lon = latlondic[place][1]
+        if date == "今日":
+            print("lat=",lat,"lon=",lon)
+            cw = get_current_weather(lat, lon)
+            if _type == "天気":
+                print(cw["weather"][0]["description"] + "です")
+            elif _type == "気温":
+                print(str(cw["main"]["temp"]) + "度です")
+        elif date == "明日":
+            tw = get_tomorrow_weather(lat, lon)
+            if _type == "天気":
+                print(tw["weather"][0]["description"] + "です")
+            elif _type == "気温":
+                print(str(tw["main"]["temp"]) + "度です")
         break
     else:
         # その他の繊維先の場合は状態に紐付いたシステム発話を生成
