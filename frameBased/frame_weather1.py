@@ -92,7 +92,7 @@ while True:
     sys_da = next_system_da(frame)
 
     # 遷移先がtell_infoの場合は情報を伝えて終了
-    if sys_da == "tell_info":
+    if sys_da == "tell-info":
         print("天気をお伝えします")
         break
     else:
