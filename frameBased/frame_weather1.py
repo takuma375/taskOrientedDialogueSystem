@@ -18,3 +18,28 @@ uttdic = {  "open-prompt": "ご用件をどうぞ",
             "ask-date": "日付(今日/明日)を言ってください",
             "ask-type": "情報種別(天気/気温)を言ってください"
             }
+
+# 発話から得られた情報をもとにフレームを更新
+def update_frame(frame, da, conceptdic):
+    # 値の整合性を確認し、整合しないものは空文字にする
+    for k, v in conceptdic.items():
+        if k == "place" and v not in prefs:
+            conceptdic[k] = ""
+        elif k == "date" and v not in dates:
+            conceptdic[k] = ""
+        elif k == "type" and v not in types:
+            conceptdic[k] = ""
+    
+    if da == "request-weather":
+        for k, v in conceptdic.items():
+            # コンセプトの情報でスロットを埋める
+            frame[k] = v
+    elif da == "initialize":
+        frame = {"place": "", "date": "", "type": ""}
+    elif da == "correct-info":
+        for k, v in conceptdic.items():
+            if frame[k] == v:
+                frame[k] = ""
+    
+    return frame
+    
