@@ -60,3 +60,45 @@ def next_system_da(frame):
 
 # フレーム
 frame = {"place": "", "date": "", "type": ""}
+
+# システムプロンプト
+print("SYS> こちらは天気情報案内システムです")
+print("SYS> ご用件をどうぞ")
+
+# ユーザー入力の処理
+while True:
+    text = input("> ")
+
+    # 現在のフレームを表示
+    print("frame=", frame)
+
+    # 対話校と属性と値の対をユーザーが入力することを想定
+    lis = text.split(',')
+    da = lis[0]
+    conceptdic = {}
+    
+    for k_v in lis[1:]:
+        k, v = k_v.split('=')
+        conceptdic[k] = v
+    print(da, conceptdic)
+
+    # 対話行為とコンセプト列を用いてフレームを更新
+    frame = update_frame(frame, da, conceptdic)
+
+    # 更新後のフレームを表示
+    print("updated frame=", frame)
+
+    # フレームからシステム対話行為を得る
+    sys_da = next_system_da(frame)
+
+    # 遷移先がtell_infoの場合は情報を伝えて終了
+    if sys_da == "tell_info":
+        print("天気をお伝えします")
+        break
+    else:
+        # 対話行為に紐付いたテンプレートを用いてシステム発話を生成
+        sysutt = uttdic[sys_da]
+        print("SYS>", sysutt)
+
+# 終了発話
+print("ご利用ありがとうございました")
