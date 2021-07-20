@@ -58,3 +58,5 @@ def next_system_da(frame):
     else:
         return "tell-info"
 
+# フレーム
+frame = {"place": "", "date": "", "type": ""}
