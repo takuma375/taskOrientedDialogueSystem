@@ -42,4 +42,19 @@ def update_frame(frame, da, conceptdic):
                 frame[k] = ""
     
     return frame
-    
+
+# フレームの状態から次のシステム対話行為を決定
+def next_system_da(frame):
+    # すべてのスロットが空のときはオープンな質問を行う
+    if frame["place"] == "" and frame["date"] == "" and frame["type"] == "":
+        return "open-prompt"
+    # 空のスロットがあればその要素を質問する
+    elif frame["place"] == "":
+        return "ask-place"
+    elif frame["date"] == "":
+        return "ask-date"
+    elif frame["type"] == "":
+        return "ask-type"
+    else:
+        return "tell-info"
+
