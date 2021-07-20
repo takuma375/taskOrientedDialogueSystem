@@ -1,5 +1,6 @@
+import re
 import random
-
+import xml
 
 # 都道府県名のリスト
 prefs = [   '三重', '京都', '佐賀', '兵庫', '北海道', '千葉', '和歌山',
@@ -36,3 +37,27 @@ def random_generate(root):
             buf += elem.tail
     return buf
 
+# 学習用ファイルの書き出し先
+fp = open("da_samples.dat", "w")
+
+da = ''
+
+# example.txtファイルの読み込み
+for line in open("example.txt", "r"):
+    line = line.rstrip()
+    # da=から始まる行から対話行為名を取得
+    if re.search(f'^da=', line):
+        da = line.replace('da=', '')
+    # 空行は無視
+    elif line == "":
+        pass
+    else:
+        # タグの部分を取得するため、周囲にダミーのタグを付けて解析
+        root = xml.etree.ElementTree.fromstring("<dummy>"+line+"</dummy>")
+        # 各サンプル文を1000倍に増やす
+        for i in range(1000):
+            sample = random_generate(root)
+            # 対話行為タイプ, 発話文, タグとその文字位置を学習用ファイルに書き出す
+            fp.write(da + "\t" + sample + "\n")
+
+fp.close()
