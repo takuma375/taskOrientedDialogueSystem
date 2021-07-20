@@ -1,6 +1,7 @@
 import re
 import random
-import xml
+import json
+import xml.etree.ElementTree
 
 # 都道府県名のリスト
 prefs = [   '三重', '京都', '佐賀', '兵庫', '北海道', '千葉', '和歌山',
@@ -43,7 +44,7 @@ fp = open("da_samples.dat", "w")
 da = ''
 
 # example.txtファイルの読み込み
-for line in open("example.txt", "r"):
+for line in open("examples.txt", "r"):
     line = line.rstrip()
     # da=から始まる行から対話行為名を取得
     if re.search(f'^da=', line):
