@@ -4,7 +4,7 @@ da=request-weather
 <date>明日</date>
 <date>明日</date>です
 <type>天気</type>
-<tyoe>天気</type>です
+<type>天気</type>です
 <place>大阪</place>の<date>明日</date>
 <place>大阪</place>の<date>明日</date>です
 <place>大阪</place>の<type>天気</type>
