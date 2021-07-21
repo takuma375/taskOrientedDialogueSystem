@@ -47,7 +47,7 @@ da = ''
 for line in open("examples.txt", "r"):
     line = line.rstrip()
     # da=から始まる行から対話行為名を取得
-    if re.search(f'^da=', line):
+    if re.search(r'^da=', line):
         da = line.replace('da=', '')
     # 空行は無視
     elif line == "":
