@@ -1,4 +1,7 @@
+import MeCab
 import random
+import re
+import xml.etree.ElementTree
 
 # 都道府県名のリスト
 prefs = [   '三重', '京都', '佐賀', '兵庫', '北海道', '千葉', '和歌山',
@@ -47,3 +50,64 @@ def random_generate(root):
     
     return buf, posdic
 
+# 現在の文字位置に対応するタグをpostdicから取得
+def get_label(pos, posdic):
+    for label, (start, end) in posdic.items():
+         if start <= pos and pos < end:
+             return label
+    return "O"
+
+# MeCabの初期化
+mecab = MeCab.Tagger()
+mecab.parse('')
+
+# 学習用ファイルの書き出し先
+fp = open("concept_samples.dat", "w")
+da = ''
+
+# examples.txtファイルの読み込み
+for line in open("examples.txt", "r"):
+    line = line.rstrip()
+    # da=から始まる行から対話行為名を取得
+    if re.search(r'^da=', line):
+        da = line.replace('da=', '')
+    # 空行は無視
+    elif line == "":
+        pass
+    else:
+        # タグの部分を取得するため、周囲にダミーのタグを付けて解析する
+        root = xml.etree.ElementTree.fromstring("<dummy>"+line+"</dummy>")
+        # 各サンプル文を1000倍に増やす
+        for i in range(1000):
+            sample, posdic = random_generate(root)
+
+            # lisは[単語, 品詞, ラベル]のリスト
+            lis = []
+            pos = 0
+            prev_label = ""
+
+            for line in mecab.parse(sample).splitlines():
+                if line == "EOS":
+                    break
+                else:
+                    word, feature_str = line.split("\t")
+                    features = feature_str.split(',')
+                    # 形態素情報の0番目が品詞
+                    postag = features[0]
+                    # 現在の文字位置に対応するするタグを取得
+                    label = get_label(pos, posdic)
+                    # labelがOでなく、直前のラベルと同じであればラベルに'I-'をつける
+                    if label == "O":
+                        lis.append([word, postag, "O"])
+                    elif label == prev_label:
+                        lis.append([word, postag, "I-" + label])
+                    else:
+                        lis.append([word, postag, "B-" + label])
+                    pos += len(word)
+                    prev_label = label
+            # 単語, 品詞, ラベルを学習用ファイルに書き出す
+            for word, postag, label in lis:
+                fp.write(word + "\t" + postag + "\t" + label + "\n")
+            fp.write("\n")
+
+fp.close()
