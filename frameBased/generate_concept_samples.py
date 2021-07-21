@@ -1,3 +1,4 @@
+import json
 import MeCab
 import random
 import re
@@ -62,15 +63,15 @@ mecab = MeCab.Tagger()
 mecab.parse('')
 
 # 学習用ファイルの書き出し先
-fp = open("concept_samples.dat", "w")
+fp = open("concept_samples.dat","w")
 da = ''
 
 # examples.txtファイルの読み込み
-for line in open("examples.txt", "r"):
+for line in open("examples.txt","r"):
     line = line.rstrip()
     # da=から始まる行から対話行為名を取得
-    if re.search(r'^da=', line):
-        da = line.replace('da=', '')
+    if re.search(r'^da=',line):
+        da = line.replace('da=','')
     # 空行は無視
     elif line == "":
         pass
