@@ -28,3 +28,11 @@ def word2features(sent, i):
     else:
         features['EOS'] = True
     return features
+
+# 単語情報を素性に変換
+def sent2features(sent):
+    return [word2features(sent, i) for i in range(len(sent))]
+
+# 文情報をラベルに変換
+def sent2labels(sent):
+    return [label for word, postag, label in sent]
