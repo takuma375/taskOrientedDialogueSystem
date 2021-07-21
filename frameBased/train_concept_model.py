@@ -1,12 +1,13 @@
+import json
 import sklearn_crfsuite
 from crf_util import word2features, sent2features, sent2labels
 import dill
 
 sents = []
-lis =[]
+lis = []
 
 # concept_samples.dat の読み込み
-for line in open("concept_samples.dat", "r"):
+for line in open("concept_samples.dat","r"):
     line = line.rstrip()
     # 空行で1つの事例が完了
     if line == "":
@@ -14,8 +15,8 @@ for line in open("concept_samples.dat", "r"):
         lis = []
     else:
         # concept_samples.dat は単語, 品詞, ラベルがタブ区切りになっている
-        word, posttag, label = line.split('\t')
-        lis.append([word, posttag, label])
+        word, postag, label = line.split('\t')
+        lis.append([word, postag, label])
 
 # 各単語の情報を素性に変換する
 X = [sent2features(s) for s in sents]
@@ -34,5 +35,5 @@ crf = sklearn_crfsuite.CRF(
 crf.fit(X, Y)
 
 # CRFモデルの保存
-with open("crf.model", "wb") as f:
+with open("crf.model","wb") as f:
     dill.dump(crf, f)
