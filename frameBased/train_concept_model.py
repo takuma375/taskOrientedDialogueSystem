@@ -1,3 +1,7 @@
+import sklearn_crfsuite
+from crf_util import word2features, sent2features, sent2labels
+import dill
+
 sents = []
 lis =[]
 
@@ -13,3 +17,22 @@ for line in open("concept_samples.dat", "r"):
         word, posttag, label = line.split('\t')
         lis.append([word, posttag, label])
 
+# 各単語の情報を素性に変換する
+X = [sent2features(s) for s in sents]
+
+# 各単語のラベル情報
+Y = [sent2labels(s) for s in sents]
+
+# CRFによる学習
+crf = sklearn_crfsuite.CRF(
+    algorithm='lbfgs',
+    c1=0.1,
+    c2=0.1,
+    max_iterations=100,
+    all_possible_transitions=False
+)
+crf.fit(X, Y)
+
+# CRFモデルの保存
+with open("crf.model", "wb") as f:
+    dill.dump(crf, f)
