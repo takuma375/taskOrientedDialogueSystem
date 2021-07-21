@@ -1,5 +1,8 @@
 import MeCab
-
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.svm import SVC
+from sklearn.preprocessing import LabelEncoder
+import dill
 
 # MeCabの初期化
 mecab = MeCab.Tagger()
@@ -27,3 +30,20 @@ for line in open("da_samples.dat", "r"):
     # 対話行為ラベルをlabelsに追加
     labels.append(da)
 
+# TfidfVectorizerを使い、各文を素性ベクトルに変換する
+vectorizer = TfidfVectorizer(tokenizer=lambda x: x.split())
+X = vectorizer.fit_transform(sents)
+
+# LabelEncoderを用いて、ラベルを数値に変換する
+label_encoder = LabelEncoder()
+Y = label_encoder.fit_transform(labels)
+
+# SVMでベクトルからラベルを取得するモデルを学習
+svc = SVC(gamma="scale")
+svc.fit(X, Y)
+
+# 学習されたモデル等、一式をsvc.modelに保存
+with open("svc.model", "wb") as f:
+    dill.dump(vectorizer, f)
+    dill.dump(label_encoder, f)
+    dill.dump(svc, f)
