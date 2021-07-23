@@ -1,5 +1,4 @@
-
-
+from da_concept_extractor import DA_Concept
 # 都道府県名のリスト
 prefs = [   '三重', '京都', '佐賀', '兵庫', '北海道', '千葉', '和歌山',
                 '埼玉', '大分', '大阪', '奈良', '宮城', '宮崎', '富山', '山口',
@@ -61,7 +60,7 @@ def next_system_da(frame):
         return "tell-info"
 
 # 対話行為とコンセプトの推定器
-# TODO: 別ファイルからモジュールを読み込む
+da_concept = DA_Concept()
 
 # フレーム
 frame = {"place": "", "date": "", "type": ""}
@@ -77,15 +76,8 @@ while True:
     # 現在のフレームを表示
     print("frame=", frame)
 
-    # 対話校と属性と値の対をユーザーが入力することを想定
-    lis = text.split(',')
-    da = lis[0]
-    conceptdic = {}
-    
-    for k_v in lis[1:]:
-        k, v = k_v.split('=')
-        conceptdic[k] = v
-    print(da, conceptdic)
+    # 手入力で対話行為タイプとコンセプトを入力していた箇所を自動推定するように変更
+    da, conceptdic = da_concept.process(text)
 
     # 対話行為とコンセプト列を用いてフレームを更新
     frame = update_frame(frame, da, conceptdic)
