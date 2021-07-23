@@ -1,3 +1,4 @@
+from da_concept_extractor import DA_Concept
 import os
 
 class FrameWeatherSystem:
@@ -46,5 +47,9 @@ class FrameWeatherSystem:
     forecast_url = 'http://api.openweathermap.org/data/2.5/forecast'
     appid = os.environ["WEATHER_MAP_API_KEY"]
 
-
+    def __init__(self):
+        # 対話セッションを管理するための辞書
+        self.sessiondic = {}
+        # 対話行為とコンセプトを抽出するためのモジュールの組み込み
+        self.da_concept = DA_Concept()
                 
