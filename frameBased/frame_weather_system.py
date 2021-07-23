@@ -2,6 +2,10 @@ from da_concept_extractor import DA_Concept
 from datetime import datetime, timedelta, time
 import requests
 import os
+import sys
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+sys.path.append('../')
+from telegram_bot import TelegramBot
 
 class FrameWeatherSystem:
 
@@ -85,14 +89,14 @@ class FrameWeatherSystem:
         return ""
     
     # 発話から得られた情報をもとにフレームを更新
-    def update_frame(frame, da, conceptdic):
+    def update_frame(self, frame, da, conceptdic):
         # 値の整合性を確認し、整合しないものは空文字にする
         for k, v in conceptdic.items():
-            if k == "place" and v not in prefs:
+            if k == "place" and v not in self.prefs:
                 conceptdic[k] = ""
-            elif k == "date" and v not in dates:
+            elif k == "date" and v not in self.dates:
                 conceptdic[k] = ""
-            elif k == "type" and v not in types:
+            elif k == "type" and v not in self.types:
                 conceptdic[k] = ""
         
         if da == "request-weather":
@@ -109,7 +113,7 @@ class FrameWeatherSystem:
         return frame
     
     # フレームの状態から次のシステム対話行為を決定
-    def next_system_da(frame):
+    def next_system_da(self, frame):
         # すべてのスロットが空のときはオープンな質問を行う
         if frame["place"] == "" and frame["date"] == "" and frame["type"] == "":
             return "open-prompt"
@@ -123,4 +127,70 @@ class FrameWeatherSystem:
         else:
             return "tell-info"
     
+    def initial_message(self, input):
+        text = input["utt"]
+        sessionId = input["sessionId"]
+
+        # セッションIDとセッションに関連する情報を格納した辞書
+        self.sessiondic[sessionId] = {"frame": {"place": "", "date": "", "type": ""}}
+
+        return {"utt": "こちらは天気情報案内システムで。ご用件をどうぞ", "end": False}
     
+    def reply(self, input):
+        text = input["utt"]
+        sessionId = input["sessionId"]
+
+        # 現在のセッションのフレームを取得
+        frame = self.sessiondic[sessionId]["frame"]
+        print("frame=", frame)
+
+        # 発話から対話行為タイプとコンセプト列を取得
+        da, conceptdic = self.da_concept.process(text)
+        print(da, conceptdic)
+
+        # 発話行為タイプとコンセプト列を用いてフレームを更新
+        frame = self.update_frame(frame, da, conceptdic)
+        print("updated frame=", frame)
+
+        # 更新後のフレームを保存
+        self.sessiondic[sessionId] = {"frame": frame}
+
+        # フレームからシステム対話行為を得る
+        sys_da = self.next_system_da(frame)
+
+        # 遷移先がtell-infoの場合は情報を伝えて終了
+        if sys_da == "tell-info":
+            utts = []
+            utts.append("お伝えします")
+            place = frame["place"]
+            date = frame["date"]
+            _type = frame["type"]
+
+            lat = self.latlondic[place][0] # placeから緯度を取得
+            lon = self.latlondic[place][1] # placeから経度を取得
+            print("lat=", lat, "lon=",lon)
+            if date == "今日":
+                cw = self.get_current_weather(lat, lon)
+                if _type == "天気":
+                    utts.append(cw["weather"][0]["description"] + "です")
+                elif _type == "気温":
+                    utts.append(str(cw["main"]["temp"]) + "度です")
+            elif date == "明日":
+                tw = self.get_tomorrow_weather(lat, lon)
+                if _type == "天気":
+                    utts.append(tw["weather"][0]["description"] + "です")
+                elif _type == "気温":
+                    utts.append(str(tw["main"]["temp"]) + "度です")
+            utts.append("ご利用ありがとうございました")
+            del self.sessiondic[sessionId]
+            return {"utt": "。".join(utts), "end": True}
+        
+        else:
+            # その他の遷移先の場合は状態に紐付いたシステム発話を生成
+            sysutt = self.uttdic[sys_da]
+            return {"utt":sysutt, "end": False}
+
+if __name__ == '__main__':
+    system = FrameWeatherSystem()
+    bot = TelegramBot(system)
+    bot.run()
