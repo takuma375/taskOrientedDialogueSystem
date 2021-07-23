@@ -1,4 +1,6 @@
 from da_concept_extractor import DA_Concept
+from datetime import datetime, timedelta, time
+import requests
 import os
 
 class FrameWeatherSystem:
@@ -52,4 +54,34 @@ class FrameWeatherSystem:
         self.sessiondic = {}
         # 対話行為とコンセプトを抽出するためのモジュールの組み込み
         self.da_concept = DA_Concept()
-                
+    
+    # 天気情報を取得する関数
+    def get_current_weather(self, lat, lon):
+        # 天気情報を取得
+        response = requests.get("{}?lat={}&lon={}&lang=ja&units=metric&APPID={}".format(self.current_weather_url, lat, lon, self.appid))
+        return response.json()
+    
+    def get_tomorrow_weather(self, lat, lon):
+        #今日の時間を取得
+        today = datetime.today()
+        # 明日の時間を取得
+        tomorrow = today + timedelta(days=1)
+        # 明日の正午の時間を取得
+        tomorrow_noon = datetime.combine(tomorrow, time(12, 0))
+        # UNIX時間に変換
+        timestamp = tomorrow_noon.timestamp()
+
+        #天気情報を取得
+        response = requests.get("{}?lat={}&lon={}&lang=ja&units=metric&APPID={}".format(self.forecast_url, lat, lon, self.appid))
+        dic = response.json()
+
+        # 3時間おきの天気情報についてループ
+        for i in range(len(dic["list"])):
+            # i番目の天気情報(UNIX時間)
+            dt = float(dic["list"][i]["dt"])
+            # 明日の正午移行のデータになった時点でその天気情報を返す
+            if dt >= timestamp:
+                return dic["list"][i]
+        return ""
+    
+    
