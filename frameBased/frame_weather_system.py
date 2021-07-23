@@ -84,4 +84,43 @@ class FrameWeatherSystem:
                 return dic["list"][i]
         return ""
     
+    # 発話から得られた情報をもとにフレームを更新
+    def update_frame(frame, da, conceptdic):
+        # 値の整合性を確認し、整合しないものは空文字にする
+        for k, v in conceptdic.items():
+            if k == "place" and v not in prefs:
+                conceptdic[k] = ""
+            elif k == "date" and v not in dates:
+                conceptdic[k] = ""
+            elif k == "type" and v not in types:
+                conceptdic[k] = ""
+        
+        if da == "request-weather":
+            for k, v in conceptdic.items():
+                # コンセプトの情報でスロットを埋める
+                frame[k] = v
+        elif da == "initialize":
+            frame = {"place": "", "date": "", "type": ""}
+        elif da == "correct-info":
+            for k, v in conceptdic.items():
+                if frame[k] == v:
+                    frame[k] = ""
+        
+        return frame
+    
+    # フレームの状態から次のシステム対話行為を決定
+    def next_system_da(frame):
+        # すべてのスロットが空のときはオープンな質問を行う
+        if frame["place"] == "" and frame["date"] == "" and frame["type"] == "":
+            return "open-prompt"
+        # 空のスロットがあればその要素を質問する
+        elif frame["place"] == "":
+            return "ask-place"
+        elif frame["date"] == "":
+            return "ask-date"
+        elif frame["type"] == "":
+            return "ask-type"
+        else:
+            return "tell-info"
+    
     
